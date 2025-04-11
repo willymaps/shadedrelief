@@ -1,282 +1,472 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+  <head>
     <title>Shaded relief</title>
-    <meta property="og:description" content="Visualizing the shaded relief archive on a maplibre globe." />
-    <meta charset='utf-8'>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel='stylesheet' href='https://unpkg.com/maplibre-gl@5.3.0/dist/maplibre-gl.css' />
-    <script src='https://unpkg.com/maplibre-gl@5.3.0/dist/maplibre-gl.js'></script>
-	<script src='https://unpkg.com/@turf/turf@7.1.0/turf.min.js'></script>
+    <meta
+      property="og:description"
+      content="Visualizing the shaded relief archive on a maplibre globe."
+    />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/maplibre-gl@5.3.0/dist/maplibre-gl.css"
+    />
+    <script src="https://unpkg.com/maplibre-gl@5.3.0/dist/maplibre-gl.js"></script>
+    <script src="https://unpkg.com/@turf/turf@7.1.0/turf.min.js"></script>
     <style>
-        body { margin: 0; padding: 0; font-family: sans-serif;}
-        html, body, #map { height: 100%; position: relative; }
-		h2 {font-size: 18px; margin: 0 0 10px 0; color: #333}
-		a {color: #555; text-decoration: underline;}
-		p {font-size: 14px; margin: 3px 0; color: #555}
-		p.note {font-size: 12px; color: #555}
-		#selector { position: absolute; width: 185px;padding: 15px 20px;margin: 10px 15px; z-index: 11; background-color: rgba(255,255,255,1);border-radius: 3px;box-shadow: 2px 2px 10px rgba(0,0,0,0.1);}
-		select {margin-bottom: 15px;margin-top:15px;padding: 5px 2px;width:100%;font-size: 14px;color: #555}
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: sans-serif;
+      }
+      html,
+      body,
+      #map {
+        height: 100%;
+        position: relative;
+      }
+      h2 {
+        font-size: 18px;
+        margin: 0 0 10px 0;
+        color: #333;
+      }
+      a {
+        color: #555;
+        text-decoration: underline;
+      }
+      p {
+        font-size: 14px;
+        margin: 3px 0;
+        color: #555;
+      }
+      p.note {
+        font-size: 12px;
+        color: #555;
+      }
+      #selector {
+        position: absolute;
+        width: 185px;
+        padding: 15px 20px;
+        margin: 10px 15px;
+        z-index: 11;
+        background-color: rgba(255, 255, 255, 1);
+        border-radius: 3px;
+        box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      select {
+        margin-bottom: 15px;
+        margin-top: 15px;
+        padding: 5px 2px;
+        width: 100%;
+        font-size: 14px;
+        color: #555;
+      }
     </style>
-</head>
-<body>
-<div id="selector">
-	<h2>Relief Artists</h2>
-	<p>Visualizing the <a href="https://www.shadedreliefarchive.com/" target="_blank">shaded relief archive</a> on a <a href="https://maplibre.org/maplibre-gl-js/docs/" target="_blank">maplibre</a> globe.</p>
-	<select name="cars" id="cars" onchange="selection(this.value)">
-		<option value="harrison">Harrison – US</option>
-		<option value="kuzdroasia">Kuzdro – Asia</option>
-		<option value="nelson">Nelson – Alaska</option>
-		<option value="schutzler">Schutzler – US</option>
-		<option value="townsendna">Townsend – US</option>
-		<option value="townsendeurope">Townsend – Europe</option>
-		<option value="townsendafrica">Townsend – Africa</option>
-		<option value="townsendoceania">Townsend – Oceania</option>
-	</select>
-	<p class="note">By <a href="https://williambdavis.ca/" target="_blank">William B. Davis</a></p>
-	<p class="note"><a href="https://github.com/willymaps/shadedrelief" target="_blank">Github</a></p>
-</div>
-<div id="map"></div>
-<script>
-	let latest = 'harrison';
-	const style = {
-		version: 8,
-		glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
-		projection: {
-			type: 'globe'
-		},
-		sources: {
-			"maplibre": {
-				"url": "https://demotiles.maplibre.org/tiles/tiles.json",
-				"type": "vector"
-			}
-		},
-		layers: [
-			{
-				id: "background",
-				type: "background",
-				paint: {
-					"background-color": "#fff"
-				}
-			},
-			{
-				id: "coastline",
-				type: "line",
-				source: "maplibre",
-				'source-layer': "countries",
-				paint: {
-					"line-color": "#d3d3d3",
-					"line-width": ['interpolate', ['linear'], ['zoom'], 1, 0.5, 4, 1],
-				},
-				layout: {
-					"line-cap": "round",
-					"line-join": "round"
-				}
-			}
-		],
-	}
+  </head>
+  <body>
+    <div id="selector">
+      <h2>Relief Artists</h2>
+      <p>
+        Visualizing the
+        <a href="https://www.shadedreliefarchive.com/" target="_blank"
+          >shaded relief archive</a
+        >
+        on a
+        <a href="https://maplibre.org/maplibre-gl-js/docs/" target="_blank"
+          >maplibre</a
+        >
+        globe.
+      </p>
+      <select name="cars" id="cars" onchange="selection(this.value)">
+        <option value="harrison">Harrison – US</option>
+        <option value="harrisonhawaii">Harrison – Hawaii</option>
+        <option value="kuzdroasia">Kuzdro – Asia</option>
+        <option value="nelson">Nelson – Alaska</option>
+        <option value="schutzler">Schutzler – US</option>
+        <option value="townsendna">Townsend – US</option>
+        <option value="townsendeurope">Townsend – Europe</option>
+        <option value="townsendafrica">Townsend – Africa</option>
+        <option value="townsendoceania">Townsend – Oceania</option>
+      </select>
+      <p class="note">
+        By
+        <a href="https://williambdavis.ca/" target="_blank">William B. Davis</a>
+      </p>
+      <p class="note">
+        <a href="https://github.com/willymaps/shadedrelief" target="_blank"
+          >Github</a
+        >
+      </p>
+    </div>
+    <div id="map"></div>
+    <script>
+      let latest = "harrison";
 
-	const cities = {
-			"type": "FeatureCollection",
-			"features": [
-				turf.point([-73.99680343860908,40.7177706616871], {label: "New York", image: "NA", align: "left"}),
-				turf.point([-80.20678071769987,25.78584917067434], {label: "Miami", image: "NA", align: "left"}),
-				turf.point([-118.24545865501722,34.048763672202284], { label: "Los Angeles", image: "NA", align: "right" }),
-				turf.point([-9.147516760720094,38.72645716398861], {label: "Lisbon", image: "EU", align: "right"}),
-				turf.point([12.483168920099956,41.893431157416444], {label: "Rome", image: "EU", align: "right"}),
-				turf.point([18.06850555045,59.325077022818135], {label: "Stockholm", image: "EU", align: "left"}),
-				turf.point([-21.94229351406443,64.14594734695086], {label: "Reykjavik", image: "EU", align: "right"}),
-				turf.point([13.17796351023992,32.896428095731636], {label: "Tripoli", image: "EU", align: "left"}),
-				turf.point([72.87062180227173,19.053173253911694], {label: "Mumbai", image: "AS", align: "right"}),
-				turf.point([114.16294255709414,22.27872152494433], {label: "Hong Kong", image: "AS", align: "left"}),
-				turf.point([139.6952141203442,35.68775957993289], {label: "Tokyo", image: "AS", align: "left"}),
-				turf.point([101.68752806424857,3.156997866338628], {label: "Kuala Lumpur", image: "AS", align: "left"}),
-				turf.point([106.82792456956588,-6.174904156896417], {label: "Jakarta", image: "AS", align: "left"}),
-				turf.point([120.98021417767745,14.591167506834239], {label: "Manila", image: "AS", align: "left"}),
-				turf.point([18.418171850578858,-33.92811566017338], {label: "Cape Town", image: "AF", align: "right"}),
-				turf.point([39.183081022075044,21.549106077440157], {label: "Jeddah", image: "AF", align: "left"}),
-				turf.point([-7.615412071318104,33.59767693546756], {label: "Casablanca", image: "AF", align: "right"}),
-				turf.point([31.2349255968021,30.064081821753845], {label: "Cairo", image: "AF", align: "left"}),
-				turf.point([3.387497399548039,6.461172727662884], {label: "Lagos", image: "AF", align: "right"}),
-				turf.point([-17.44622539771123,14.69467297719413], {label: "Dakar", image: "AF", align: "right"}),
-				turf.point([151.20129921776464,-33.866776480066044], {label: "Sydney", image: "OC", align: "left"}),
-				turf.point([174.75838212358542,-36.8542184880493], {label: "Auckland", image: "OC", align: "right"}),
-				turf.point([147.16114286105397,-9.474942078373104], {label: "Port Moresby", image: "OC", align: "right"}),
-				turf.point([112.73979519567166,-7.246523471133344], {label: "Surabaya", image: "OC", align: "left"})
-			]
-		}
+      const style = {
+        version: 8,
+        glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
+        projection: {
+          type: "globe",
+        },
+        sources: {
+          maplibre: {
+            url: "https://demotiles.maplibre.org/tiles/tiles.json",
+            type: "vector",
+          },
+        },
+        layers: [
+          {
+            id: "background",
+            type: "background",
+            paint: {
+              "background-color": "#fff",
+            },
+          },
+          {
+            id: "coastline",
+            type: "line",
+            source: "maplibre",
+            "source-layer": "countries",
+            paint: {
+              "line-color": "#d3d3d3",
+              "line-width": ["interpolate", ["linear"], ["zoom"], 1, 0.5, 4, 1],
+            },
+            layout: {
+              "line-cap": "round",
+              "line-join": "round",
+            },
+          },
+        ],
+      };
 
-	const artist = {
-		harrison: {
-			coords: [
-				[-130.8805047, 53.2249195],
-				[-60.7596223, 53.2249195],
-				[-60.7596223, 20.7684172],
-				[-130.8805047, 20.7684172]
-			],
-			url: `images/harrison.png`,
-			image: 'NA'
-		},
-		nelson: {
-			coords: [
-				[-179.9999918, 74.8718924],
-				[179.9741914, 74.8718924],
-				[179.9741914, 44.3695522],
-				[-179.9999918, 44.3695522]
-			],
-			url: `images/nelson.png`,
-			image: 'AK'
-		},
-		townsendna: {
-			coords: [
-				[-134.3840087, 59.3677733],
-				[-46.7481651, 59.3677733],
-				[-46.7481651, 12.8669239],
-				[-134.3840087, 12.8669239]
-			],
-			url: `images/townsendna.png`,
-			image: 'NA'
-		},
-		townsendeurope: {
-			coords: [
-				[-46.5498376, 74.7881645],
-				[89.6099395, 74.7881645],
-				[89.6099395, 14.8665061],
-				[-46.5498376, 14.8665061]
-			],
-			url: `images/townsendeurope.png`,
-			image: 'EU'
-		},
-		townsendafrica: {
-			coords: [
-				[-54.2392274, 60.1890382],
-				[93.5285497, 60.1890382],
-				[93.5285497, -39.7075614],
-				[-54.2392274, -39.7075614]
-			],
-			url: `images/townsendafrica.png`,
-			image: 'AF'
-		},
-		townsendoceania: {
-			coords: [
-				[-179.9999937, 6.4009162],
-				[179.9908536, 6.4009162],
-				[179.9908536, -50.6797582],
-				[-179.9999937, -50.6797582]
-			],
-			url: `images/townsendoceania.png`,
-			image: 'OC'
-		},
-		schutzler: {
-			coords: [
-				[-130.8805047, 53.2249195],
-				[-60.7596223, 53.2249195],
-				[-60.7596223, 20.7684172],
-				[-130.8805047, 20.7684172]
-			],
-			url: `images/schutzler.png`,
-			image: 'NA'
-		},
-		kuzdroasia: {
-			coords: [
-				[53.5363137, 48.0181381],
-				[162.5391853, 48.0181381],
-				[162.5391853, -21.4921829],
-				[53.5363137, -21.4921829]
-			],
-			url: `images/kuzdro.png`,
-			image: 'AS'
-		}
-	}
+      const cities = {
+        type: "FeatureCollection",
+        features: [
+          turf.point([-73.99680343860908, 40.7177706616871], {
+            label: "New York",
+            image: "NA",
+            align: "left",
+          }),
+          turf.point([-80.20678071769987, 25.78584917067434], {
+            label: "Miami",
+            image: "NA",
+            align: "left",
+          }),
+          turf.point([-118.24545865501722, 34.048763672202284], {
+            label: "Los Angeles",
+            image: "NA",
+            align: "right",
+          }),
+          turf.point([-9.147516760720094, 38.72645716398861], {
+            label: "Lisbon",
+            image: "EU",
+            align: "right",
+          }),
+          turf.point([12.483168920099956, 41.893431157416444], {
+            label: "Rome",
+            image: "EU",
+            align: "right",
+          }),
+          turf.point([18.06850555045, 59.325077022818135], {
+            label: "Stockholm",
+            image: "EU",
+            align: "left",
+          }),
+          turf.point([-21.94229351406443, 64.14594734695086], {
+            label: "Reykjavik",
+            image: "EU",
+            align: "right",
+          }),
+          turf.point([13.17796351023992, 32.896428095731636], {
+            label: "Tripoli",
+            image: "EU",
+            align: "left",
+          }),
+          turf.point([72.87062180227173, 19.053173253911694], {
+            label: "Mumbai",
+            image: "AS",
+            align: "right",
+          }),
+          turf.point([114.16294255709414, 22.27872152494433], {
+            label: "Hong Kong",
+            image: "AS",
+            align: "left",
+          }),
+          turf.point([139.6952141203442, 35.68775957993289], {
+            label: "Tokyo",
+            image: "AS",
+            align: "left",
+          }),
+          turf.point([101.68752806424857, 3.156997866338628], {
+            label: "Kuala Lumpur",
+            image: "AS",
+            align: "left",
+          }),
+          turf.point([106.82792456956588, -6.174904156896417], {
+            label: "Jakarta",
+            image: "AS",
+            align: "left",
+          }),
+          turf.point([120.98021417767745, 14.591167506834239], {
+            label: "Manila",
+            image: "AS",
+            align: "left",
+          }),
+          turf.point([18.418171850578858, -33.92811566017338], {
+            label: "Cape Town",
+            image: "AF",
+            align: "right",
+          }),
+          turf.point([39.183081022075044, 21.549106077440157], {
+            label: "Jeddah",
+            image: "AF",
+            align: "left",
+          }),
+          turf.point([-7.615412071318104, 33.59767693546756], {
+            label: "Casablanca",
+            image: "AF",
+            align: "right",
+          }),
+          turf.point([31.2349255968021, 30.064081821753845], {
+            label: "Cairo",
+            image: "AF",
+            align: "left",
+          }),
+          turf.point([3.387497399548039, 6.461172727662884], {
+            label: "Lagos",
+            image: "AF",
+            align: "right",
+          }),
+          turf.point([-17.44622539771123, 14.69467297719413], {
+            label: "Dakar",
+            image: "AF",
+            align: "right",
+          }),
+          turf.point([151.20129921776464, -33.866776480066044], {
+            label: "Sydney",
+            image: "OC",
+            align: "left",
+          }),
+          turf.point([174.75838212358542, -36.8542184880493], {
+            label: "Auckland",
+            image: "OC",
+            align: "right",
+          }),
+          turf.point([147.16114286105397, -9.474942078373104], {
+            label: "Port Moresby",
+            image: "OC",
+            align: "right",
+          }),
+          turf.point([112.73979519567166, -7.246523471133344], {
+            label: "Surabaya",
+            image: "OC",
+            align: "left",
+          }),
+          turf.point([-157.85557533676132, 21.30399869921895], {
+            label: "Honolulu",
+            image: "HI",
+            align: "left",
+          }),
+        ],
+      };
 
-    const map = new maplibregl.Map({
-        container: 'map',
+      const artist = {
+        harrison: {
+          coords: [
+            [-130.8805047, 53.2249195],
+            [-60.7596223, 53.2249195],
+            [-60.7596223, 20.7684172],
+            [-130.8805047, 20.7684172],
+          ],
+          url: `images/harrison.png`,
+          image: "NA",
+        },
+        harrisonhawaii: {
+          coords: [
+            [-160.4828336, 22.5535661],
+            [-154.3266759, 22.5535661],
+            [-154.3266759, 18.5332182],
+            [-160.4828336, 18.5332182],
+          ],
+          url: `images/harrisonhawaii.png`,
+          image: "HI",
+        },
+        nelson: {
+          coords: [
+            [-179.9999918, 74.8718924],
+            [179.9741914, 74.8718924],
+            [179.9741914, 44.3695522],
+            [-179.9999918, 44.3695522],
+          ],
+          url: `images/nelson.png`,
+          image: "AK",
+        },
+        townsendna: {
+          coords: [
+            [-134.3840087, 59.3677733],
+            [-46.7481651, 59.3677733],
+            [-46.7481651, 12.8669239],
+            [-134.3840087, 12.8669239],
+          ],
+          url: `images/townsendna.png`,
+          image: "NA",
+        },
+        townsendeurope: {
+          coords: [
+            [-46.5498376, 74.7881645],
+            [89.6099395, 74.7881645],
+            [89.6099395, 14.8665061],
+            [-46.5498376, 14.8665061],
+          ],
+          url: `images/townsendeurope.png`,
+          image: "EU",
+        },
+        townsendafrica: {
+          coords: [
+            [-54.2392274, 60.1890382],
+            [93.5285497, 60.1890382],
+            [93.5285497, -39.7075614],
+            [-54.2392274, -39.7075614],
+          ],
+          url: `images/townsendafrica.png`,
+          image: "AF",
+        },
+        townsendoceania: {
+          coords: [
+            [-179.9999937, 6.4009162],
+            [179.9908536, 6.4009162],
+            [179.9908536, -50.6797582],
+            [-179.9999937, -50.6797582],
+          ],
+          url: `images/townsendoceania.png`,
+          image: "OC",
+        },
+        schutzler: {
+          coords: [
+            [-130.8805047, 53.2249195],
+            [-60.7596223, 53.2249195],
+            [-60.7596223, 20.7684172],
+            [-130.8805047, 20.7684172],
+          ],
+          url: `images/schutzler.png`,
+          image: "NA",
+        },
+        kuzdroasia: {
+          coords: [
+            [53.5363137, 48.0181381],
+            [162.5391853, 48.0181381],
+            [162.5391853, -21.4921829],
+            [53.5363137, -21.4921829],
+          ],
+          url: `images/kuzdro.png`,
+          image: "AS",
+        },
+      };
+
+      const map = new maplibregl.Map({
+        container: "map",
         style,
-		bounds: [artist['harrison'].coords[3], artist['harrison'].coords[1]],
+        bounds: [artist["harrison"].coords[3], artist["harrison"].coords[1]],
         zoom: 4,
-		minZoom: 1,
-		maxZoom: 8,
-        maplibreLogo: false
-    });
+        minZoom: 1,
+        maxZoom: 8,
+        maplibreLogo: false,
+      });
 
-	map.on('load', () => {
-		map.addSource('relief', {
-			type: 'image',
-			url: artist['harrison'].url,
-			coordinates: artist['harrison'].coords
-		});
-		map.addLayer({
-			id: 'relief-layer',
-			type: 'raster',
-			source: 'relief',
-			paint: {
-				'raster-fade-duration': 0
-			}
-		}, 'coastline');
-		map.addSource('cities', {
-			type: 'geojson',
-			data: cities
-		});
-		map.addLayer({
-			id: 'city-layer',
-			type: 'circle',
-			source: 'cities',
-			filter: ['==', ['get', 'image'], artist['harrison'].image],
-			paint: {
-				'circle-radius': ['interpolate', ['linear'], ['zoom'], 4, 3, 8, 4],
-				'circle-color': 'rgba(0,0,0,0.9)',
-				'circle-stroke-width': 1,
-				'circle-stroke-color': 'rgba(255,255,255,0.65)'
-			}
-		});
-		map.addLayer({
-			id: 'city-labels',
-			type: 'symbol',
-			source: 'cities',
-			filter: ['==', ['get', 'image'], artist['harrison'].image],
-			paint: {
-				"text-color": "rgba(0,0,0,0.9)",
-				"text-halo-blur": 0.25,
-				"text-halo-color": "rgba(255, 255, 255, 1)",
-				"text-halo-width": 1.25
-			},
-			layout: {
-				"text-font": [
-					"Open Sans Semibold"
-				],
-				"text-anchor": ['get', 'align'],
-				"text-radial-offset": 0.5,
-				"text-size": ['interpolate', ['linear'], ['zoom'], 4, 12, 10, 18],
-				"text-field": ['get', 'label']
-			}
-		});
+      map.on("load", () => {
+        map.addSource("relief", {
+          type: "image",
+          url: artist["harrison"].url,
+          coordinates: artist["harrison"].coords,
+        });
+        map.addLayer(
+          {
+            id: "relief-layer",
+            type: "raster",
+            source: "relief",
+            paint: {
+              "raster-fade-duration": 0,
+            },
+          },
+          "coastline"
+        );
+        map.addSource("cities", {
+          type: "geojson",
+          data: cities,
+        });
+        map.addLayer({
+          id: "city-layer",
+          type: "circle",
+          source: "cities",
+          filter: ["==", ["get", "image"], artist["harrison"].image],
+          paint: {
+            "circle-radius": ["interpolate", ["linear"], ["zoom"], 4, 3, 8, 4],
+            "circle-color": "rgba(0,0,0,0.9)",
+            "circle-stroke-width": 1,
+            "circle-stroke-color": "rgba(255,255,255,0.65)",
+          },
+        });
+        map.addLayer({
+          id: "city-labels",
+          type: "symbol",
+          source: "cities",
+          filter: ["==", ["get", "image"], artist["harrison"].image],
+          paint: {
+            "text-color": "rgba(0,0,0,0.9)",
+            "text-halo-blur": 0.25,
+            "text-halo-color": "rgba(255, 255, 255, 1)",
+            "text-halo-width": 1.25,
+          },
+          layout: {
+            "text-font": ["Open Sans Semibold"],
+            "text-anchor": ["get", "align"],
+            "text-radial-offset": 0.5,
+            "text-size": ["interpolate", ["linear"], ["zoom"], 4, 12, 10, 18],
+            "text-field": ["get", "label"],
+          },
+        });
 
-		map.on('resize', () => {
-			latestBounds(latest);
-		});
-	});
+        map.on("resize", () => {
+          latestBounds(latest);
+        });
+      });
 
-	function latestBounds(val) {
-		let bounds = [artist[val].coords[3], artist[val].coords[1]]
-		if (val === 'townsendoceania') {
-			bounds = [[100, -55], [180, 10]]
-		} else if (val === 'nelson') {
-			bounds = [[-220, 40], [-90, 75]]
-		}
-		map.fitBounds(bounds)
-	}
+      function latestBounds(val) {
+        let bounds = [artist[val].coords[3], artist[val].coords[1]];
+        if (val === "townsendoceania") {
+          bounds = [
+            [100, -55],
+            [180, 10],
+          ];
+        } else if (val === "nelson") {
+          bounds = [
+            [-220, 40],
+            [-90, 75],
+          ];
+        }
+        map.fitBounds(bounds);
+      }
 
-	function selection(val) {
-		latest = val;
-		const source = map.getSource(`relief`)
-		source.updateImage({
-			url: artist[val].url,
-			coordinates: artist[val].coords,
-		});
-		map.setFilter('city-layer', ['==', ['get', 'image'], artist[val].image]);
-		map.setFilter('city-labels', ['==', ['get', 'image'], artist[val].image]);
-		latestBounds(val);
-	}
-</script>
-</body>
+      function selection(val) {
+        latest = val;
+        const source = map.getSource(`relief`);
+        source.updateImage({
+          url: artist[val].url,
+          coordinates: artist[val].coords,
+        });
+        map.setFilter("city-layer", [
+          "==",
+          ["get", "image"],
+          artist[val].image,
+        ]);
+        map.setFilter("city-labels", [
+          "==",
+          ["get", "image"],
+          artist[val].image,
+        ]);
+        latestBounds(val);
+      }
+    </script>
+  </body>
 </html>
